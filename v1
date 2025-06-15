@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Wishboard · 世界級願望清單</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gradient1: linear-gradient(120deg,#b2afff 0%,#fbc2eb 100%);
+      --gradient2: linear-gradient(120deg,#fbc2eb 0%,#b2afff 100%);
+      --glass: rgba(255,255,255,0.78);
+      --card-shadow: 0 8px 32px 0 rgba(99,91,255,0.17), 0 2px 6px 0 rgba(0,0,0,0.04);
+      --primary: #635bff;
+      --primary2: #ff80b5;
+      --success: #16c672;
+      --warning: #ffe066;
+      --muted: #7b8190;
+      --border: #e7e8f2;
+      --radius: 22px;
+      --blur: 18px;
+    }
+    html, body {
+      margin: 0; padding: 0; min-height: 100vh;
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      background: var(--gradient1), var(--gradient2), #f5f8fc;
+      background-size: 200% 200%;
+      background-attachment: fixed;
+      color: #23263B;
+      animation: gradientmove 15s ease-in-out infinite;
+    }
+    @keyframes gradientmove {
+      0%,100% { background-position: 0% 0%, 100% 100%; }
+      50% { background-position: 100% 100%, 0% 0%; }
+    }
+    .container {
+      max-width: 1420px;
+      margin: 62px auto 38px auto;
+      padding: 0 24px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.95rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      margin-bottom: 13px;
+      background: linear-gradient(87deg,#635bff 20%,#ff80b5 70%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 4px 12px #fff7);
+    }
+    .desc {
+      text-align: center;
+      color: var(--muted);
+      font-size: 1.18rem;
+      margin-bottom: 44px;
+      letter-spacing: .01em;
+      text-shadow: 0 2px 8px #fff3;
+    }
+    .boards {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .board {
+      flex: 1 1 340px;
+      min-width: 340px;
+      max-width: 440px;
+      padding: 26px 20px 34px 20px;
+      background: var(--glass);
+      border-radius: var(--radius);
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(var(--blur));
+      border: 1.8px solid var(--border);
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: column;
+      min-height: 680px;
+      position: relative;
+      transition: box-shadow .23s;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .board.wishlist { border-top: 7px solid #a18cd1; background: linear-gradient(125deg,#f7f7fa 70%,#ede7fb 100%);}
+    .board.considering { border-top: 7px solid #ffb5ef; background: linear-gradient(125deg,#fef6fa 75%,#fffde0 100%);}
+    .board.purchased { border-top: 7px solid #16c672; background: linear-gradient(125deg,#e9fcf6 60%,#f6fff4 100%);}
+    .board-title {
+      font-size: 1.35rem; font-weight: 800;
+      letter-spacing: .01em;
+      display: flex; align-items: center; gap: 13px;
+      margin-bottom: 21px;
+      filter: drop-shadow(0 1.5px 8px #fff9);
+    }
+    .board.wishlist .board-title { color: #7e6be8;}
+    .board.considering .board-title { color: #f77ac9;}
+    .board.purchased .board-title { color: #1bb77e;}
+    .add-btn {
+      margin-left: auto;
+      background: linear-gradient(90deg,#a18cd1 30%,#fbc2eb 100%);
+      color: #fff; font-weight: 700;
+      border: none; border-radius: 10px;
+      padding: 8px 21px; font-size: 1.09rem;
+      box-shadow: 0 3px 8px rgba(120,115,200,0.10);
+      cursor: pointer; transition: background .17s, transform .11s;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .add-btn:hover { background: linear-gradient(90deg,#635bff,#ff80b5); transform: translateY(-2px) scale(1.045);}
+    .wish-list {
+      display: flex; flex-direction: column; gap: 29px;
+      min-height: 120px; flex: 1;
+    }
+    .card {
+      background: rgba(255,255,255,0.90);
+      border-radius: 19px;
+      box-shadow: 0 6px 36px 0 rgba(160,90,230,0.12),0 2px 7px 0 rgba(0,0,0,0.04);
+      border: 1.3px solid #ece6fa;
+      padding: 25px 19px 18px 20px;
+      display: flex; flex-direction: column;
+      gap: 10px;
+      position: relative;
+      transition: box-shadow .17s, border .14s, transform .12s;
+      cursor: grab;
+      user-select: none;
+      z-index: 2;
+      will-change: transform, box-shadow;
+    }
+    .card.dragging {
+      opacity: 0.65;
+      border: 2.7px dashed #635bff;
+      background: rgba(215,200,255,0.22);
+      transform: scale(1.018);
+      box-shadow: 0 7px 40px rgba(99,91,255,0.22);
+    }
+    .card-title-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-emoji {
+      font-size: 1.42rem;
+      line-height: 1;
+      margin-right: 4px;
+      min-width: 1.6em;
+      text-align: center;
+      user-select: text;
+      cursor: text;
+      outline: none;
+      background: none;
+    }
+    .card-title {
+      font-size: 1.17rem; font-weight: 700; flex: 1;
+      letter-spacing: .01em;
+      background: none;
+      outline: none;
+      min-width: 36px;
+    }
+    .card-category {
+      font-size: .97rem; padding: 2.5px 13px; border-radius: 13px; font-weight: 600;
+      background: linear-gradient(90deg,#f4f5ff 60%,#f8e2fa 100%);
+      color: #a18cd1; letter-spacing: .01em;
+      outline: none; min-width: 22px;
+      border: 1px solid #ede7fa;
+    }
+    .card-desc {
+      color: var(--muted); font-size: 1.03rem; margin-bottom: 3px; margin-top: 2px;
+      outline: none; min-width: 36px;
+    }
+    .card-info-row {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap; font-size: 1.01rem;
+      color: #595f77;
+      margin-top: 2px;
+    }
+    .card-date {
+      font-size: 1.01rem;
+      color: #8b8db6;
+      background: #f5f7fa;
+      border-radius: 7px;
+      padding: 2px 12px;
+      outline: none;
+    }
+    .card-status {
+      padding: 2px 13px; border-radius: 12px; font-size: .99rem; font-weight: 600; letter-spacing: .01em;
+      background: #ecf1fc;
+      color: #6a85f1;
+      box-shadow: 0 1px 5px #f1f7ff90;
+    }
+    .card.considering .card-status { background: #fbe9f9; color: #f77ac9;}
+    .card.purchased .card-status { background: #e8faf0; color: #1bb77e;}
+    .progress-bar-bg {
+      background: #e8eafd;
+      border-radius: 9px; height: 13px;
+      margin: 13px 0 2px 0; width: 100%; position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 12px #b2afff15;
+    }
+    .progress-bar {
+      height: 100%; border-radius: 8px;
+      background: linear-gradient(90deg,#a18cd1,#fbc2eb 95%);
+      transition: width .44s cubic-bezier(.8,.04,.47,.92), background .44s;
+      min-width: 3%;
+      box-shadow: 0 0 8px #a18cd1cc, 0 1px 12px #fbc2eb80;
+      filter: blur(0.2px);
+    }
+    .card.considering .progress-bar { background: linear-gradient(90deg,#ffb5ef 15%,#fff8c1 85%);}
+    .card.purchased .progress-bar { background: linear-gradient(90deg,#43e97b 10%,#38f9d7 100%);}
+    .progress-text {
+      font-size:.97rem;color:#A3A3A3;margin-bottom:4px;
+      letter-spacing: .02em;
+    }
+    .card-notes {
+      color: #8a95b0; font-size: 1.03rem; margin-top: 6px;
+      outline: none; min-width: 28px;
+    }
+    .card-actions {
+      position: absolute; right: 14px; top: 14px; display: flex; gap: 10px;
+      z-index: 9;
+    }
+    .icon-btn {
+      border: none; background: transparent; cursor: pointer; padding: 2px;
+      opacity: 0.76; transition: opacity 0.18s;
+    }
+    .icon-btn:hover { opacity: 1; }
+    .icon-btn svg { width: 18px; height: 18px;}
+    [contenteditable] {
+      outline: none;
+      border-radius: 7px;
+      min-width: 16px;
+      padding: 1.5px 3.5px;
+      transition: background 0.17s, box-shadow .2s;
+      cursor: text;
+    }
+    [contenteditable]:focus {
+      background: #f3e9fc;
+      box-shadow: 0 0 0 2.5px #a18cd1cc;
+    }
+    @media (max-width: 1250px) {
+      .container { max-width: 99vw;}
+      .boards { gap: 19px;}
+    }
+    @media (max-width: 900px) {
+      .boards { flex-direction: column; gap: 32px;}
+      .board { min-width: 0; max-width: 98vw;}
+    }
+    @media (max-width: 600px) {
+      h1 { font-size: 2.1rem;}
+      .desc { font-size: 1.03rem;}
+      .board { min-height: 0; padding: 12px 2vw 16px 2vw;}
+      .container { margin: 15px auto;}
+    }
+    .card:active { cursor: grabbing;}
+    ::-webkit-scrollbar { width: 10px; background: transparent;}
+    ::-webkit-scrollbar-thumb { background: #e7eaf6; border-radius: 10px;}
+    ::selection { background: #f3e9fc;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Wishboard 世界級願望清單</h1>
+    <div class="desc">
+      極致設計，卡片多層玻璃質感、進度條 glow、分區色彩動態、emoji 支援、編輯拖曳互動，完全可自訂與即時本地儲存。<br>
+      Want it all? Just add your wish ✨
+    </div>
+    <div class="boards" id="boards"></div>
+  </div>
+  <script>
+    const COLUMNS = [
+      { key: "wishlist", label: "Wishlist 願望中", color: "wishlist" },
+      { key: "considering", label: "Considering 觀望中", color: "considering" },
+      { key: "purchased", label: "Purchased 已購買", color: "purchased" }
+    ];
+    // 初始資料
+    const DEMO = [
+      {
+        emoji: "🎧",
+        title: "Sony WH-1000XM6 頭戴耳機",
+        category: "電子產品",
+        desc: "頂級主動降噪、旅行/工作必備，等特價再購入。",
+        date: "2025-12-01",
+        notes: "",
+        column: "wishlist",
+        progress: 35
+      },
+      {
+        emoji: "📱",
+        title: "iPhone 16 Pro 256GB",
+        category: "手機",
+        desc: "相機升級、日常主力機更換。",
+        date: "2025-09-25",
+        notes: "",
+        column: "wishlist",
+        progress: 15
+      },
+      {
+        emoji: "⛷️",
+        title: "北海道滑雪之旅",
+        category: "旅行",
+        desc: "2026冬天，完成滑雪初體驗。",
+        date: "2026-01-10",
+        notes: "需提早規劃機票與住宿。",
+        column: "considering",
+        progress: 10
+      },
+      {
+        emoji: "🎮",
+        title: "Switch 2",
+        category: "遊戲主機",
+        desc: "等發售後再決定是否升級。",
+        date: "2025-12-15",
+        notes: "",
+        column: "considering",
+        progress: 0
+      },
+      {
+        emoji: "🎧",
+        title: "AirPods Pro 2",
+        category: "電子產品",
+        desc: "公司福委會抽中，已實現！",
+        date: "2025-03-01",
+        notes: "體驗佳，續航更久。",
+        column: "purchased",
+        progress: 100
+      }
+    ];
+    const STORAGE_KEY = "wishboard_wc_v2";
+    function loadData() {
+      let d = [];
+      try { d = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch(e){}
+      return Array.isArray(d) && d.length ? d : DEMO;
+    }
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+    function genCard(card, idx) {
+      return `
+      <div class="card ${card.column}" draggable="true" data-idx="${idx}">
+        <div class="card-actions">
+          <button class="icon-btn" title="刪除" onclick="deleteCard(${idx})">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M
